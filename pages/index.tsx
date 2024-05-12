@@ -37,59 +37,6 @@ export default function Home() {
 	 * The height of the canvas.
 	 */
 	const [height, setHeight] = useState(100)
-	
-
-function handleWidthChange() {
-	if (proposedWidth) setWidth(proposedWidth)
-}
-
-	/**
-	 * Handles input changes to the height input.
-	 *
-	 * @param {React.ChangeEvent<HTMLInputElement>} e The event.
-	 */
-	function handleHeightInput(e) {
-		const parsedInput = parseInt(e.target.value.replace(/[^0-9]/g, ''), 10);
-		if (parsedInput > 0) setHeight(parsedInput)
-	}
-
-	function handleWidthInput(e) {
-		const input = e.target.value
-		const match = input.match(/^(\d+(?:\.\d+)?)([a-z]*)$/i)
-		if (match) {
-			const value = parseFloat(match[1])
-			const unit = match[2]
-			let conversionFactor = 1
-			switch (unit) {
-				case 'in':
-				case '"':
-					conversionFactor = 25.4
-					break
-				case 'ft':
-					conversionFactor = 12 * 25.4
-					break
-				case 'yd':
-					conversionFactor = 3 * 12 * 25.4
-					break
-				case 'cm':
-					conversionFactor = 10
-					break
-				case 'dm':
-					conversionFactor = 100
-					break
-				case 'm':
-					conversionFactor = 1000
-					break
-			}
-			setWidth(value * conversionFactor)
-		}
-	}
-
-
-
-	function handleWidthBlur(e) {
-		
-	}
 
 
 	return (
@@ -127,21 +74,20 @@ const InputWithUnitConversion = () => {
      *  - `(in|"|ft|yd|cm|dm|m|mm)?` optional capture group 2: unit of length
      *  - `$/` end of string
      */
-    const regex = /^(\d*\.?\d+|\d+\s\d*\/\d+|\d*\/\d+)\s*(in|"|ft|yd|cm|dm|m|mm)?$/;
+    const regex = /(?:^(?<value>\d*\.?\d+|\d+\s\d*\/\d+|\d*\/\d+)\s*(?<unit>in|inch|inches|"|ft|feet|'|yd|yards?|cm|dm|m|mm)?\s*$)|(?:^(?<feet>\d*\.?\d+|\d+\s\d*\/\d+|\d*\/\d+)\s*(?:ft|feet|')\s*(?<inches>\d*\.?\d+|\d+\s\d*\/\d+|\d*\/\d+)\s*(?:in|inch|inches|")?\s*$)/;
     const match = inputValue.match(regex);
-		
-		if (match && match[1] && !match[2]) { // if value and no unit
-			// if no unit given, append with mm like an autocomplete hint
-			console.log('mm')
-		}
     setValue(inputValue)
 		
     if (match) {
-      const [, valuePart, unit] = match;
+			console.log('match', match)
+      let {value, unit, feet, inches} = match.groups;
       let decimalValue = 0;
 
-      if (valuePart.includes(' ')) {
-        const [whole, fraction] = valuePart.split(' ');
+			if (feet && inches) {value = feet
+				unit='ft'
+			}
+      if (value.includes(' ')) {
+        const [whole, fraction] = value.split(' ');
         decimalValue += parseFloat(whole);
 
         if (fraction) {
@@ -149,11 +95,11 @@ const InputWithUnitConversion = () => {
           const fractionValue = parseFloat(numerator) / parseFloat(denominator);
           decimalValue += fractionValue;
         }
-      } else if (valuePart.includes('/')) {
-        const [numerator, denominator] = valuePart.split('/');
+      } else if (value.includes('/')) {
+        const [numerator, denominator] = value.split('/');
         decimalValue += parseFloat(numerator) / parseFloat(denominator);
       } else {
-        decimalValue += parseFloat(valuePart);
+        decimalValue += parseFloat(value);
       }
 
       let conversionFactor = 25.4; // Default to inches
@@ -188,7 +134,27 @@ const InputWithUnitConversion = () => {
       }
 
       const convertedValueInMm = decimalValue * conversionFactor;
-      setConvertedValue(convertedValueInMm.toFixed(2));
+			if (inches) {
+				let inchDecimalValue = 0
+				if (inches.includes(' ')) {
+					const [whole, fraction] = inches.split(' ');
+					inchDecimalValue += parseFloat(whole);
+	
+					if (fraction) {
+						const [numerator, denominator] = fraction.split('/');
+						const fractionValue = parseFloat(numerator) / parseFloat(denominator);
+						inchDecimalValue += fractionValue;
+					}
+				} else if (inches.includes('/')) {
+					const [numerator, denominator] = inches.split('/');
+					inchDecimalValue += parseFloat(numerator) / parseFloat(denominator);
+				} else {
+					inchDecimalValue += parseFloat(inches);
+				}
+				setConvertedValue((convertedValueInMm + inchDecimalValue*25.4).toFixed(2))
+			}
+			else setConvertedValue(convertedValueInMm.toFixed(2));
+      
     } else {
       setConvertedValue('');
     }
