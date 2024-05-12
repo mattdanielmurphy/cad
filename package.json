@@ -6,11 +6,19 @@
     "start": "next start"
   },
   "dependencies": {
+    "@jscad/regl-renderer": "^2.6.8",
+    "@tarikjabiri/dxf": "^2.8.9",
+    "dxf-viewer": "^1.0.31",
+    "gl": "^8.0.2",
     "next": "latest",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "engines": {
     "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.11",
+    "@types/react": "18.3.1"
   }
 }
